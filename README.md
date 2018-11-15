@@ -4,6 +4,8 @@ Very basic implementation of Asteroids.
 
 All art assets are available on the unity asset store (see credits for links)
 
+Initial Scene: MainMenu
+
 ## Credits
 
 - Asteroids: https://assetstore.unity.com/packages/3d/environments/sci-fi/space-shooter-asteroids-96444
