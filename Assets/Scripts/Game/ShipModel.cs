@@ -28,6 +28,12 @@ namespace Asteroids.Game
             ship.OnFire += Fire;
             ship.OnCollision += Explode;
             ship.OnTurn += Turn;
+
+            foreach (Engine engine in GetComponentsInChildren<Engine>())
+            {
+                ship.OnAccelerationStart += engine.StartEngine;
+                ship.OnAccelerationStop += engine.StopEngine;
+            }
         }
 
         void Explode()

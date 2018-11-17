@@ -11,6 +11,8 @@ namespace Asteroids.Game
         #region Events
         public event Action OnCollision;
         public event Action OnFire;
+        public event Action OnAccelerationStart;
+        public event Action OnAccelerationStop;
         public event Action<float> OnTurn;
         #endregion
 
@@ -20,6 +22,8 @@ namespace Asteroids.Game
         [Range(0.1f, 500f), Tooltip("Acceleration speed of the ship.")]
         public float accelerationSpeed = 10f;
 
+        // is the ship accelerating
+        private bool isAccelerating = false;
         // is the ship destroyable by collisions.
         private bool vulnerable = false;
         // Get the position of the ship.
@@ -49,7 +53,15 @@ namespace Asteroids.Game
         public void Accelerate(float acceleration)
         {
             // there is no reverse in Asteroids
-            if (acceleration <= 0) return;
+            if (acceleration <= 0)
+            {
+                if (isAccelerating)
+                {
+                    isAccelerating = false;
+                    OnAccelerationStop?.Invoke();
+                }
+                return;
+            }
 
             if (rigidbody.velocity.normalized != transform.forward)
             {
@@ -57,6 +69,12 @@ namespace Asteroids.Game
             }
             // Add force to the ship in the forward direction.
             rigidbody.AddForce(transform.forward * acceleration * accelerationSpeed, ForceMode.Force);
+
+            if (!isAccelerating)
+            {
+                isAccelerating = true;
+                OnAccelerationStart?.Invoke();
+            }
         }
 
         public void Turn(float yaw)

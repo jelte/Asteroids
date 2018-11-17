@@ -22,7 +22,7 @@ namespace Asteroids
         #region Unity Methods
         void Awake()
         {
-            // ensure there is only 1 audio manager.
+            // ensure there is only 1 input manager.
             if (Instance != null)
             {
                 DestroyImmediate(gameObject);
