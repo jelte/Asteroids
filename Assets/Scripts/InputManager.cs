@@ -6,23 +6,7 @@ namespace Asteroids
     public class InputManager : MonoBehaviour
     {
         #region Static Properties
-        private static InputManager instance;
-
-        public static InputManager Instance
-        {
-            get
-            {
-                return instance;
-            }
-            set
-            {
-                if (instance != null) return;
-                // Set the value
-                instance = value;
-                // Persist object across scenes
-                DontDestroyOnLoad(value.gameObject);
-            }
-        }
+        public static InputManager Instance { get; private set; }
         #endregion
 
         #region Events
@@ -36,14 +20,18 @@ namespace Asteroids
         #endregion
 
         #region Unity Methods
-        void Start()
+        void Awake()
         {
-            // ensure there is only 1 input manager.
-            Instance = this;
-            if (Instance != this)
+            // ensure there is only 1 audio manager.
+            if (Instance != null)
             {
                 DestroyImmediate(gameObject);
+                return;
             }
+            // Set the value
+            Instance = this;
+            // Persist object across scenes
+            DontDestroyOnLoad(gameObject);
         }
 
         void Update()

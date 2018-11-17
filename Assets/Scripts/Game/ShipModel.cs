@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Asteroids.Shared;
+using UnityEngine;
 
 namespace Asteroids.Game
 {
@@ -9,9 +10,12 @@ namespace Asteroids.Game
         #endregion
 
         #region References
-        public GameObject explosionEffect;
+        public Explosion explosionEffect;
         public AudioClip explosionSound;
         public AudioClip projectileSound;
+
+        // Explosion pool
+        private IObjectPool<Explosion> explosionPool;
         #endregion
 
         #region Methods
@@ -38,7 +42,7 @@ namespace Asteroids.Game
                 Destroy(part.gameObject, 2f);
             }
             // Create the explosion effect
-            Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            explosionPool.Get(transform.position);
             // Play the explosion sound
             AudioManager.Play(explosionSound);
             // Destroy the ship model
@@ -49,6 +53,13 @@ namespace Asteroids.Game
         {
             // Play the projectile sound
             AudioManager.Play(projectileSound);
+        }
+        #endregion
+
+        #region Unity Methods
+        void Awake()
+        {
+            explosionPool = ObjectPoolFactory.Get(explosionEffect);
         }
         #endregion
     }

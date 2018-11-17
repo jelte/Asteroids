@@ -90,7 +90,7 @@ namespace Asteroids.UI
             if (operation != null) return;
                         
             // Play the sound 
-            operation = AudioManager.Play(selectionSound);
+            operation = AudioManager.PlayAndWait(selectionSound);
             // When the sound is finished played select the ship
             operation.completed += delegate ()
             {

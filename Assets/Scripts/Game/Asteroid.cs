@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+﻿using Asteroids.Shared;
+using UnityEngine;
 
 namespace Asteroids.Game
 {
-    public class Asteroid : MonoBehaviour
+    public class Asteroid : MonoBehaviour, IPoolable<Asteroid>
     {
         #region Events
-        public event System.Action OnDestroy;
+        public event System.Action<Asteroid> OnRemove;
         #endregion
 
         #region Properties        
@@ -22,16 +23,17 @@ namespace Asteroids.Game
         /**
          * Initialize the asteroid 
          **/
-        public void Init(int size, Transform parent, Vector3 direction)
-        {
-            transform.parent = parent;
+        public void Init(int size, Vector3 direction)
+        {          
             // Rescale according to size
             Vector3 scale = transform.localScale;
             transform.localScale = scale / (4 - size);
-
-            rigidbody = GetComponent<Rigidbody>();
+            
             // Rotate the asteroid randomly around its axis
             rigidbody.angularVelocity = Random.insideUnitSphere * 1.5f;
+
+            // Reset velocity
+            rigidbody.velocity = Vector3.zero;
 
             // Add a continuous force in the direction.
             rigidbody.AddForce(direction, ForceMode.Acceleration);
@@ -39,14 +41,17 @@ namespace Asteroids.Game
         #endregion
 
         #region Unity Methods
+        void Awake()
+        {
+            rigidbody = GetComponent<Rigidbody>();
+        }
+        
         void OnCollisionEnter(Collision collision)
         {
-            OnDestroy?.Invoke();
-
             AudioManager.Play(explosion);
 
             // Destroy the asteroid
-            Destroy(gameObject);
+            OnRemove?.Invoke(this);
         }
         #endregion
     }

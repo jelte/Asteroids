@@ -1,10 +1,16 @@
-﻿using System.Collections;
+﻿using Asteroids.Shared;
+using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Asteroids.Game
 {
-    public class Explosion : MonoBehaviour
+    public class Explosion : MonoBehaviour, IPoolable<Explosion>
     {
+        #region events
+        public event Action<Explosion> OnRemove;
+        #endregion
+
         #region Properties
         [Tooltip("How long does the explosion last?")]
         public float explosionTime = 4f;
@@ -14,12 +20,13 @@ namespace Asteroids.Game
         IEnumerator CleanUp()
         {
             yield return new WaitForSeconds(explosionTime);
-            Destroy(gameObject);
+
+            OnRemove?.Invoke(this);
         }
         #endregion
 
         #region Unity Methods
-        void Start()
+        void OnEnable()
         {
             StartCoroutine(CleanUp());
         }
