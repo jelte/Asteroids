@@ -7,6 +7,10 @@ namespace Asteroids.Game
     {
         #region Properties
         public float projectileOffset = 2.5f;
+        [Range(0f, 1f)]
+        public float rollSpeed = .25f;
+        [Range(0f, 90f)]
+        public float rollDistance = 30f;
         #endregion
 
         #region References
@@ -23,6 +27,7 @@ namespace Asteroids.Game
         {
             ship.OnFire += Fire;
             ship.OnCollision += Explode;
+            ship.OnTurn += Turn;
         }
 
         void Explode()
@@ -53,6 +58,18 @@ namespace Asteroids.Game
         {
             // Play the projectile sound
             AudioManager.Play(projectileSound);
+        }
+
+        void Turn(float delta)
+        {
+            // determine the angle
+            float direction = delta == 0 ? 0 : delta < 0 ? 1 : -1;
+
+            // Determine the final desired angle.
+            Quaternion targetAngle = Quaternion.Euler(Vector3.forward * direction * rollDistance);
+
+            // pivot toward the targt angle.
+            transform.localRotation = Quaternion.Slerp(transform.localRotation, targetAngle, rollSpeed);
         }
         #endregion
 

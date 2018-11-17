@@ -1387,6 +1387,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   projectileOffset: 2.5
+  rollSpeed: 0.25
+  rollDistance: 45
   explosionEffect: {fileID: 114876253796281588, guid: ecdd96beb7f93494880c052dfccf9dc1,
     type: 2}
   explosionSound: {fileID: 8300000, guid: 7020f67507d2c0c48b4e7a2449bfad82, type: 3}

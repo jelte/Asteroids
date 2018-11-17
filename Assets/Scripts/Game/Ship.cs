@@ -11,6 +11,7 @@ namespace Asteroids.Game
         #region Events
         public event Action OnCollision;
         public event Action OnFire;
+        public event Action<float> OnTurn;
         #endregion
 
         #region Properties
@@ -62,6 +63,8 @@ namespace Asteroids.Game
         {
             // Turn the ship
             transform.Rotate(transform.up * yaw * turnSpeed, Space.Self);
+
+            OnTurn?.Invoke(yaw);
         }
 
         public void Fire()
