@@ -1,4 +1,5 @@
 ﻿using Asteroids.Game.Data;
+using Asteroids.Shared;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -35,6 +36,10 @@ namespace Asteroids.Game
 
         // List of all available asteroid models.
         private IDictionary<AsteroidFamily, IDictionary<AsteroidColour, List<AsteroidModel>>> models;
+        // Pool of asteroids.
+        private IObjectPool<Asteroid> asteroidPool;
+        // List of pools for each asteroid model.
+        private IDictionary<AsteroidModel, IObjectPool<AsteroidModel>> asteroidModelPools;
         #endregion
 
         #region Methods
@@ -106,7 +111,21 @@ namespace Asteroids.Game
             }
             return asteroidModels;
         }
-        
+
+        /**
+         * get the object pool for a model.
+         **/
+        private IObjectPool<AsteroidModel> GetAsteroidPool(AsteroidModel model)
+        {
+            IObjectPool<AsteroidModel> pool;
+            if (!asteroidModelPools.TryGetValue(model, out pool))
+            {
+                pool = ObjectPoolFactory.Get(model);
+                asteroidModelPools.Add(model, pool);
+            }
+            return pool;
+        }
+
         // Spawn an asteroid
         private void Spawn(int size, Vector3 position, AsteroidFamily family, AsteroidColour colour, float force)
         {                            
@@ -126,27 +145,54 @@ namespace Asteroids.Game
         // Creat the asteroid
         private void CreateAsteroid(int size, Vector3 position, AsteroidModel model, Vector3 direction)
         {
-            Asteroid asteroid = Instantiate(asteroidPrefab, position, Quaternion.identity);
-            Instantiate(model, asteroid.transform);
-            asteroid.Init(size, transform, direction);
+            // get an available asteroid instance
+            Asteroid asteroid = asteroidPool.Get(position, transform);
 
+            // get an available model instance
+            AsteroidModel modelInstance = GetAsteroidPool(model).Get(Vector3.zero, asteroid.transform);
+
+            // update size and direction
+            asteroid.Init(size, direction);
+
+            // define event listeners
             // Notify observers that the asteroid has been destroyed.
-            asteroid.OnDestroy += delegate () { OnAsteroidDestroy?.Invoke(); };
+            System.Action<Asteroid> notifyAction = delegate (Asteroid instance) {
+                OnAsteroidDestroy?.Invoke();
+            };
+            // Spawn new smaller asteroids in its place.
+            System.Action<Asteroid> splitAction = delegate (Asteroid instance) {
+                float speed = asteroid.Velocity;
+                Spawn(size - 1, asteroid.transform.position, model.family, model.colour, speed + Random.Range(minSplitForce, maxSplitForce));
+                Spawn(size - 1, asteroid.transform.position, model.family, model.colour, speed + Random.Range(minSplitForce, maxSplitForce));
+            };
+            // tear down event listeners
+            System.Action<Asteroid> cleanUpAction = null;
+            cleanUpAction = delegate (Asteroid instance) {
+                modelInstance.Detach();
+                asteroid.OnRemove -= notifyAction;
+                asteroid.OnRemove -= cleanUpAction;
+                if (size > 1) asteroid.OnRemove -= splitAction;
+            };
 
+            // set up event listeners
+            asteroid.OnRemove += notifyAction;
             if (size > 1)
             {
-                // Spawn new smaller asteroids in its place.
-                asteroid.OnDestroy += delegate ()
-                {
-                    float speed = asteroid.Velocity;
-                    Spawn(size - 1, asteroid.transform.position, model.family, model.colour, speed + Random.Range(minSplitForce, maxSplitForce));
-                    Spawn(size - 1, asteroid.transform.position, model.family, model.colour, speed + Random.Range(minSplitForce, maxSplitForce));
-                };
+                asteroid.OnRemove += splitAction;
             }
-        }
+            asteroid.OnRemove += cleanUpAction;   
+        }        
         #endregion
 
         #region Unity Methods
+        private void Awake()
+        {
+            // Setup the asteroid pool
+            asteroidPool = ObjectPoolFactory.Get(asteroidPrefab);
+            // setup the model pool dictionary
+            asteroidModelPools = new Dictionary<AsteroidModel, IObjectPool<AsteroidModel>>();
+        }
+
         void Start()
         {
             ship = FindObjectOfType<Ship>();

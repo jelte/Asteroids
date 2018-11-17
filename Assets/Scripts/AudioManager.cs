@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Asteroids.Shared;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Asteroids
@@ -7,23 +9,7 @@ namespace Asteroids
     public class AudioManager : MonoBehaviour
     {
         #region Static Properties
-        private static AudioManager instance;
-
-        public static AudioManager Instance
-        {
-            get
-            {
-                return instance;
-            }
-            set
-            {
-                if (instance != null) return;
-                // Set the value
-                instance = value;
-                // Persist object across scenes
-                DontDestroyOnLoad(value.gameObject);
-            }
-        }
+        public static AudioManager Instance { get; private set; }
         #endregion
 
         #region Static Properties
@@ -42,7 +28,7 @@ namespace Asteroids
         /**
          * Play an audio clip
          **/
-        public static GameAsyncOperation Play(AudioClip audioClip)
+        public static GameAsyncOperation PlayAndWait(AudioClip audioClip)
         {
             GameAsyncOperation operation = new GameAsyncOperation();
 
@@ -51,14 +37,26 @@ namespace Asteroids
             return operation;
         }
 
-        private static IEnumerator Play(GameAsyncOperation operation, AudioClip audioClip)
+        public static void Play(AudioClip audioClip)
         {
             // play the clip
-            AudioSource.PlayClipAtPoint(audioClip, Vector3.zero, SoundVolume);
+            // saving GC 12 bytes by pooling the AudioSource over PlayClipAtPoint
+            //AudioSource.PlayClipAtPoint(audioClip, Vector3.zero, SoundVolume);
+            PlayAndWait(audioClip);
+        }
+
+        private static IEnumerator Play(GameAsyncOperation operation, AudioClip audioClip)
+        {
+            AudioSource source = Instance.sources.Get();
+            source.playOnAwake = false;
+            source.volume = SoundVolume;
+            source.clip = audioClip;
+            source.Play();
 
             // wait for it to finish
             yield return new WaitForSeconds(audioClip.length);
 
+            Instance.sources.Add(source);
             // flag the operation as completed
             operation.Done();
         }
@@ -102,18 +100,27 @@ namespace Asteroids
 
         #region References
         private AudioSource musicPlayer;
+        private ComponentPool<AudioSource> sources;
         #endregion
 
         #region Unity Methods
-        void Start()
+        void Awake()
         {
             // ensure there is only 1 audio manager.
-            Instance = this;
-            if (Instance != this)
+            if (Instance != null)
             {
                 DestroyImmediate(gameObject);
                 return;
             }
+            // Set the value
+            Instance = this;
+            // Persist object across scenes
+            DontDestroyOnLoad(gameObject);
+        }
+
+        void Start()
+        {
+            sources = new ComponentPool<AudioSource>(gameObject);
 
             // Load volumes from settings.
             overall = PlayerPrefs.GetFloat("Audio", overall);

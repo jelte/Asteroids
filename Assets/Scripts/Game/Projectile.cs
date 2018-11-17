@@ -1,15 +1,26 @@
-﻿using System.Collections;
+﻿using Asteroids.Shared;
+using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Asteroids.Game
 {
-    public class Projectile : MonoBehaviour
+    public class Projectile : MonoBehaviour, IPoolable<Projectile>
     {
+        #region Events
+        public event Action<Projectile> OnRemove;
+        #endregion
+
         #region Properties
         [Tooltip("Base projectile speed.")]
         public float projectileSpeed = 400f;
         [Tooltip("Duration the projectile exists.")]
         public float ttl = 10f;
+        #endregion
+
+        #region References
+        private new Rigidbody rigidbody;
+        private IEnumerator cleanUp;
         #endregion
 
         #region Methods
@@ -18,7 +29,10 @@ namespace Asteroids.Game
          **/
         public void Launch(float shipSpeed)
         {
-            GetComponent<Rigidbody>().AddForce(transform.forward * (projectileSpeed + shipSpeed), ForceMode.Impulse);
+            // Reset movement (due to object pooling)
+            rigidbody.velocity = Vector3.zero;
+
+            rigidbody.AddForce(transform.forward * (projectileSpeed + shipSpeed), ForceMode.Impulse);
         }
 
         /**
@@ -27,23 +41,31 @@ namespace Asteroids.Game
         IEnumerator CleanUp()
         {
             yield return new WaitForSeconds(ttl);
-            DestroyImmediate(gameObject);
+
+            OnRemove?.Invoke(this);
         }
         #endregion
 
         #region Unity Methods
-        void Start()
+        void Awake()
+        {
+            rigidbody = GetComponent<Rigidbody>();
+        }
+
+        void OnEnable()
         {
             // Schedule the cleanUp
-            StartCoroutine(CleanUp());
+            cleanUp = CleanUp();
         }
 
         void OnCollisionEnter(Collision collision)
         {
-            // destroy the projectile when colliding with another object
-            Destroy(gameObject);
+            // Stop the pending scheduled clean up
+            StopCoroutine(cleanUp);
+
+            // disable the projectile when colliding with another object
+            OnRemove?.Invoke(this);
         }
         #endregion
-
     }
 }

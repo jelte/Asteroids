@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Asteroids.Shared;
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -27,7 +28,9 @@ namespace Asteroids.Game
         #region References
         [Tooltip("Prefab for the projectile.")]
         public Projectile projectilePrefab;
-
+        // projectile pool
+        private IObjectPool<Projectile> projectilePool; 
+        // model of the ship
         private ShipModel model;
         private new Rigidbody rigidbody;
 
@@ -65,12 +68,13 @@ namespace Asteroids.Game
         {
             // notify event listeners
             OnFire?.Invoke();
-            
-            // Spawn the projectile
-            Projectile projectile = Instantiate(projectilePrefab, transform.position + transform.forward * model.projectileOffset, transform.rotation);
 
-            // Assign the the game space.
-            projectile.transform.parent = transform.parent;
+            // Spawn the projectile
+            Projectile projectile = projectilePool.Get(
+                transform.localPosition + transform.forward * model.projectileOffset,
+                transform.rotation,
+                transform.parent
+            );
 
             // Launch the projectile
             projectile.Launch(rigidbody.velocity.magnitude);
@@ -89,6 +93,8 @@ namespace Asteroids.Game
         #region unity
         void Start()
         {
+            projectilePool = ObjectPoolFactory.Get(projectilePrefab);
+
             // Make sure there is a rigidbody attached to the ship and that it is configured properly.
             rigidbody = GetComponent<Rigidbody>();
             if (rigidbody == null) { 

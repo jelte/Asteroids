@@ -10,25 +10,7 @@ namespace Asteroids
     public class GameManager : MonoBehaviour
     {
         #region Static Properties
-        private static GameManager instance;
-
-        public static GameManager Instance
-        {
-            get
-            {
-                return instance;
-            }
-            set
-            {
-                if (instance != null)
-                {
-                    return;
-                }
-                instance = value;
-                // Persist object across scenes
-                DontDestroyOnLoad(value.gameObject);
-            }
-        }
+        public static GameManager Instance { get; private set; }
         #endregion
         
         #region References
@@ -84,7 +66,7 @@ namespace Asteroids
 
         private void EndGame(AudioClip sound)
         {
-            GameAsyncOperation operation = AudioManager.Play(sound);
+            GameAsyncOperation operation = AudioManager.PlayAndWait(sound);
             operation.completed += delegate ()
             {
                 InputManager.Instance.OnAnyKey += Restart;
@@ -104,16 +86,25 @@ namespace Asteroids
         #endregion
 
         #region Unity Methods
-        void Start()
+        void Awake()
         {
             // ensure there is only 1 game manager.
-            Instance = this;
-            if (Instance != this)
+            if (Instance != null)
             {
                 DestroyImmediate(gameObject);
                 return;
             }
-            
+            // assign the instance
+            Instance = this;
+
+            // Persist object across scenes
+            DontDestroyOnLoad(gameObject);
+        }
+
+        void Start()
+        {
+            Application.targetFrameRate = 600;
+
             GetComponent<InputManager>().OnMenu += ToggleSettings;
         }        
         #endregion

@@ -1562,7 +1562,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa049ba733069284397b3944f7eabdcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  explosionEffect: {fileID: 1000013462590818, guid: ecdd96beb7f93494880c052dfccf9dc1,
+  projectileOffset: 2.5
+  explosionEffect: {fileID: 114876253796281588, guid: ecdd96beb7f93494880c052dfccf9dc1,
     type: 2}
   explosionSound: {fileID: 8300000, guid: 7020f67507d2c0c48b4e7a2449bfad82, type: 3}
   projectileSound: {fileID: 8300000, guid: e567a262fb820a9439262c719ed1d67d, type: 3}
