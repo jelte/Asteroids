@@ -56,6 +56,7 @@ namespace Asteroids.Game
         {
             // Schedule the cleanUp
             cleanUp = CleanUp();
+            StartCoroutine(cleanUp);
         }
 
         void OnCollisionEnter(Collision collision)
