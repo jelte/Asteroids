@@ -1,4 +1,6 @@
-﻿using Asteroids.Shared.Pooling;
+﻿using Asteroids.Shared.Audio.Command;
+using Asteroids.Shared.CommandBus;
+using Asteroids.Shared.Pooling;
 using UnityEngine;
 
 namespace Asteroids.Game
@@ -55,7 +57,7 @@ namespace Asteroids.Game
             // Create the explosion effect
             explosionPool.Get(transform.position);
             // Play the explosion sound
-            AudioManager.Play(explosionSound);
+            Bus.Execute(new Play(explosionSound));
             // Destroy the ship model
             Destroy(gameObject);
         }
@@ -63,7 +65,7 @@ namespace Asteroids.Game
         void Fire()
         {
             // Play the projectile sound
-            AudioManager.Play(projectileSound);
+            Bus.Execute(new Play(projectileSound));
         }
 
         void Turn(float delta)

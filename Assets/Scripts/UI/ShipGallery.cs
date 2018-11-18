@@ -1,5 +1,8 @@
 ﻿using Asteroids.Game;
 using Asteroids.Shared;
+using Asteroids.Shared.Animation.Commands;
+using Asteroids.Shared.Audio.Command;
+using Asteroids.Shared.CommandBus;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,14 +37,20 @@ namespace Asteroids.UI
 
             float deltaSign = Mathf.Sign(delta);
 
-            GameAsyncOperation operation = Shared.Animator.Rotate(camera.transform, Vector3.up, angle * deltaSign, 1);
-            operation.completed += delegate () {
+            Rotate command = new Rotate
+            {
+                subject = camera.transform,
+                axis = Vector3.up,
+                angle = angle * deltaSign
+            };
+            command.completed += delegate () {
                 // finished rotating
                 rotating = false;
 
                 current += (int) deltaSign;
                 current = (modelCount + current) % modelCount;
             };
+            Bus.Execute(command);
         }
 
         private void Select()
@@ -71,25 +80,46 @@ namespace Asteroids.UI
 
         void Launch(Transform ship, int index)
         {
-            GameAsyncOperation rotation = Shared.Animator.Rotate(ship, Vector3.up, 180f, 1f);
-            rotation.completed += delegate () {
-                AudioManager.Play(selectionSound);
+            Rotate shipRotation = new Rotate()
+            {
+                subject = ship,
+                axis = Vector3.up,
+                angle = 180f
+            };
+            shipRotation.completed += delegate () {
+                Bus.Execute(new Play(selectionSound));
                 Engine[] engines = ship.GetComponentsInChildren<Engine>();
-                GameAsyncOperation startEngines = Shared.Animator.Do(ship, delegate ()
+                Delegation startEngine = new Delegation()
                 {
-                    foreach (Engine engine in engines) engine.StartEngine();
-                }, 1f);
-                startEngines.completed += delegate ()
+                    action = delegate ()
+                    {
+                        foreach (Engine engine in engines) engine.StartEngine();
+                    },
+                    duration = 0f
+                };
+                startEngine.completed += delegate ()
                 {
-                    Shared.Animator.Rotate(ship, Vector3.left, 45f, 1f);
-                    GameAsyncOperation movement = Shared.Animator.Move(ship, (ship.forward + ship.up) * 25f, 1f);
-
-                    movement.completed += delegate ()
+                    Rotate shipVerticalRotation = new Rotate()
+                    {
+                        subject = ship,
+                        axis = Vector3.left,
+                        angle = 45f
+                    };
+                    Move shipMovement = new Move()
+                    {
+                        subject = ship,
+                        movement = (ship.forward + ship.up) * 25f
+                    };
+                    shipMovement.completed += delegate ()
                     {
                         FindObjectOfType<GameManager>().LoadGame(models[index]);
                     };
+                    
+                    Bus.Execute(shipVerticalRotation, shipMovement);
                 };
+                Bus.Execute(startEngine);
             };
+            Bus.Execute(shipRotation);
         }
 
         void RotateTo(int index)

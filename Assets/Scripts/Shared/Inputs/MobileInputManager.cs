@@ -49,11 +49,13 @@ namespace Asteroids.Shared.Inputs
                         break;
                 }
 
+                // Take deadzone into account
                 float deltaX = Mathf.Abs(movement.x) >= turnDeadzone ? movement.x : 0f;
                 OnHorizontalAxis?.Invoke(Mathf.Clamp(deltaX / turnSensitivity, -1f, 1f) * Time.deltaTime);
 
+                // Take deadzone into account
                 float deltaY = Mathf.Abs(movement.y) >= accelerationDeadzone ? movement.y : 0f;
-                OnVerticalAxis?.Invoke(Mathf.Clamp(movement.y / accelerationSensitivity, -1f, 1f) * Time.deltaTime);
+                OnVerticalAxis?.Invoke(Mathf.Clamp(deltaY / accelerationSensitivity, -1f, 1f) * Time.deltaTime);
             }
             else if (touch.phase == TouchPhase.Began)
             {

@@ -1,5 +1,7 @@
 ﻿using Asteroids.Game;
 using Asteroids.Shared;
+using Asteroids.Shared.Audio.Command;
+using Asteroids.Shared.CommandBus;
 using UnityEngine;
 
 namespace Asteroids
@@ -63,11 +65,13 @@ namespace Asteroids
 
         private void EndGame(AudioClip sound)
         {
-            GameAsyncOperation operation = AudioManager.PlayAndWait(sound);
-            operation.completed += delegate ()
+
+            Play command = new Play(sound);
+            command.completed += delegate ()
             {
                 InputManager.Instance.OnAnyKey += Restart;
             };
+            Bus.Execute(command);
         }
 
         /**

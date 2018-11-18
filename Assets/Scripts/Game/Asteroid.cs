@@ -1,4 +1,7 @@
-﻿using Asteroids.Shared.Pooling;
+﻿using Asteroids.Shared.Audio;
+using Asteroids.Shared.Audio.Command;
+using Asteroids.Shared.CommandBus;
+using Asteroids.Shared.Pooling;
 using UnityEngine;
 
 namespace Asteroids.Game
@@ -47,8 +50,8 @@ namespace Asteroids.Game
         }
         
         void OnCollisionEnter(Collision collision)
-        {            
-            AudioManager.Play(explosionSound);
+        {
+            Bus.Execute(new Play(explosionSound));
 
             // Destroy the asteroid
             OnRemove?.Invoke(this);

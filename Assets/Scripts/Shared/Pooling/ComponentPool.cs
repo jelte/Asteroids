@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Asteroids.Shared
+namespace Asteroids.Shared.Pooling
 {
     /**
      * Allows for reusing components.
