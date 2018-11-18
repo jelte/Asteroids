@@ -32,6 +32,8 @@ namespace Asteroids.Shared.Inputs
         #region Methods
         void HandleTouch(Touch touch)
         {
+            if (Time.timeScale == 0f) return;
+
             if (touch.position.x <= Screen.width / 2)
             {
                 switch (touch.phase)

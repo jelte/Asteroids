@@ -17,10 +17,6 @@ namespace Asteroids.Shared.Inputs
         #region Unity Methods
         void Update()
         {
-            if (Input.GetButtonDown("Fire1"))
-            {
-                OnFire?.Invoke();
-            }
             if (Input.GetButtonDown("Menu"))
             {
                 OnMenu?.Invoke();
@@ -33,8 +29,15 @@ namespace Asteroids.Shared.Inputs
             {
                 OnAnyKey?.Invoke();
             }
-            OnHorizontalAxis?.Invoke(Input.GetAxis("Horizontal") * Time.deltaTime);
-            OnVerticalAxis?.Invoke(Input.GetAxis("Vertical") * Time.deltaTime);
+            if (Time.timeScale > 0f) {
+
+                if (Input.GetButtonDown("Fire1"))
+                {
+                    OnFire?.Invoke();
+                }
+                OnHorizontalAxis?.Invoke(Input.GetAxis("Horizontal") * Time.deltaTime);
+                OnVerticalAxis?.Invoke(Input.GetAxis("Vertical") * Time.deltaTime);
+            }
         }
         #endregion
     }

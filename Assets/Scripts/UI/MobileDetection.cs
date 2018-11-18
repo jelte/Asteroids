@@ -13,7 +13,10 @@ namespace Asteroids.UI
         {
 #if UNITY_ANDROID
             gameObject.SetActive(showOnMobile);
- #endif
+#endif
+#if UNITY_STANDALONE || UNITY_EDITOR
+            gameObject.SetActive(!showOnMobile);
+#endif
         }
     }
 }

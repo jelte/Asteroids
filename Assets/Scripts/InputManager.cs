@@ -26,7 +26,8 @@ namespace Asteroids
             // Set the value
 #if UNITY_ANDROID
             Instance = gameObject.AddComponent<MobileInputManager>();
-#else
+#endif
+#if UNITY_STANDALONE || UNITY_EDITOR
             Instance = gameObject.AddComponent<KeyboardInputManager>();
 #endif
             // Persist object across scenes
