@@ -1,4 +1,4 @@
-﻿using Asteroids.Shared;
+﻿using Asteroids.Shared.Pooling;
 using UnityEngine;
 
 namespace Asteroids.Game
@@ -16,7 +16,7 @@ namespace Asteroids.Game
         #region References
         private new Rigidbody rigidbody;
         [Tooltip("Sound the asteroids makes when destroyed")]
-        public AudioClip explosion;
+        [SerializeField] private AudioClip explosionSound;        
         #endregion
 
         #region Methods
@@ -47,8 +47,8 @@ namespace Asteroids.Game
         }
         
         void OnCollisionEnter(Collision collision)
-        {
-            AudioManager.Play(explosion);
+        {            
+            AudioManager.Play(explosionSound);
 
             // Destroy the asteroid
             OnRemove?.Invoke(this);

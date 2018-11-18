@@ -1,44 +1,46 @@
-﻿using System;
+﻿using Asteroids.Game;
+using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Asteroids.UI
 {
-    public class ShipSelector : MonoBehaviour
+    public class ShipSelector : MonoBehaviour, IPointerDownHandler, IDragHandler
     {
         #region Events
-        public event Action OnSelect;
-        public event Action OnEnter;
-        public event Action OnExit;
+        public event Action<int> OnSelect;
+        public event Action<int> OnEnter;
+        public event Action<float> OnSwipe;
         #endregion
 
-        #region Methods
-        public void Highlight()
-        {
-            transform.localScale = Vector3.one * 1.5f;
-        }
-
-        public void StopHighlight()
-        {
-            transform.localScale = Vector3.one;
-        }
+        #region Properties
+        private int index;
         #endregion
 
         #region Unity Methods
-        void OnMouseEnter()
+        void OnMouseOver()
         {
-            if (Time.timeScale != 1f) return;
-
-            OnEnter?.Invoke();
-        }
-
-        void OnMouseExit()
-        {
-            OnExit?.Invoke();
+            OnEnter?.Invoke(index);
         }
 
         void OnMouseDown()
         {
-            OnSelect?.Invoke();
+            OnSelect?.Invoke(index);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            OnSelect?.Invoke(index);
+        }
+
+        void Start()
+        {
+            index = transform.GetSiblingIndex();
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            OnSwipe?.Invoke(-eventData.scrollDelta.x);
         }
         #endregion
     }

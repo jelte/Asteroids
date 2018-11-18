@@ -19,7 +19,7 @@ namespace Asteroids.UI
         void IncreaseScore() {
             // increase score by 10.
             score += 10;
-
+            
             // set display.
             textField.text = score.ToString();
         }

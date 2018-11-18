@@ -59,7 +59,7 @@ namespace Asteroids.Game
             camera = Camera.main;
             viewPort.size = Vector2.one;
         }
-
+        
         void FixedUpdate()
         {
             // Check if all children are still within the view port
