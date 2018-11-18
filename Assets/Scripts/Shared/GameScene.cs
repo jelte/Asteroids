@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Asteroids
+namespace Asteroids.Shared
+
 {
     /**
      * Internal representation of a scene.

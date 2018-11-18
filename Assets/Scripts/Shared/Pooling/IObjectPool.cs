@@ -1,7 +1,7 @@
 ﻿using Asteroids.Game;
 using UnityEngine;
 
-namespace Asteroids.Shared
+namespace Asteroids.Shared.Pooling
 {
     public interface IObjectPool { }
 

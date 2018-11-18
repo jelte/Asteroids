@@ -1432,7 +1432,7 @@ MonoBehaviour:
   projectileOffset: 2.5
   rollSpeed: 0.25
   rollDistance: 45
-  explosionEffect: {fileID: 114876253796281588, guid: ecdd96beb7f93494880c052dfccf9dc1,
+  explosionEffect: {fileID: 114895324728379552, guid: ecdd96beb7f93494880c052dfccf9dc1,
     type: 2}
   explosionSound: {fileID: 8300000, guid: 7020f67507d2c0c48b4e7a2449bfad82, type: 3}
   projectileSound: {fileID: 8300000, guid: e567a262fb820a9439262c719ed1d67d, type: 3}

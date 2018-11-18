@@ -1,8 +1,5 @@
 ﻿using Asteroids.Game;
-using Asteroids.Game.Data;
-using Asteroids.UI;
-using System;
-using System.Collections;
+using Asteroids.Shared;
 using UnityEngine;
 
 namespace Asteroids
@@ -105,7 +102,7 @@ namespace Asteroids
         {
             Application.targetFrameRate = 600;
 
-            GetComponent<InputManager>().OnMenu += ToggleSettings;
+            InputManager.Instance.OnMenu += ToggleSettings;
         }        
         #endregion
     }

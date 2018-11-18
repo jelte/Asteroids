@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Asteroids.Shared
+namespace Asteroids.Shared.Pooling
 {
     public interface IPoolable { }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Asteroids
+namespace Asteroids.Shared
 {
     public class GameAsyncOperation
     {

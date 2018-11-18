@@ -1,5 +1,5 @@
 ﻿using Asteroids.Game.Data;
-using Asteroids.Shared;
+using Asteroids.Shared.Pooling;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,6 +33,8 @@ namespace Asteroids.Game
 
         [Tooltip("Reference to the base asteroid wrapper")]
         public Asteroid asteroidPrefab;
+        [Tooltip("Reference to the explosion")]
+        [SerializeField] private Explosion explosion;
 
         // List of all available asteroid models.
         private IDictionary<AsteroidFamily, IDictionary<AsteroidColour, List<AsteroidModel>>> models;
@@ -40,6 +42,7 @@ namespace Asteroids.Game
         private IObjectPool<Asteroid> asteroidPool;
         // List of pools for each asteroid model.
         private IDictionary<AsteroidModel, IObjectPool<AsteroidModel>> asteroidModelPools;
+        private IObjectPool<Explosion> explosionPool;
         #endregion
 
         #region Methods
@@ -158,6 +161,9 @@ namespace Asteroids.Game
             // Notify observers that the asteroid has been destroyed.
             System.Action<Asteroid> notifyAction = delegate (Asteroid instance) {
                 OnAsteroidDestroy?.Invoke();
+
+                Explosion explosion = explosionPool.Get(instance.transform.position);
+                explosion.transform.localScale = Vector3.one * (1f / (4f - size));
             };
             // Spawn new smaller asteroids in its place.
             System.Action<Asteroid> splitAction = delegate (Asteroid instance) {
@@ -189,6 +195,7 @@ namespace Asteroids.Game
         {
             // Setup the asteroid pool
             asteroidPool = ObjectPoolFactory.Get(asteroidPrefab);
+            explosionPool = ObjectPoolFactory.Get(explosion);
             // setup the model pool dictionary
             asteroidModelPools = new Dictionary<AsteroidModel, IObjectPool<AsteroidModel>>();
         }

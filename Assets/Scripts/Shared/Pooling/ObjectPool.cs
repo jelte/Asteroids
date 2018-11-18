@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Asteroids.Shared
+namespace Asteroids.Shared.Pooling
 {
     internal class ObjectPool<T> : IObjectPool<T> where T : MonoBehaviour, IPoolable<T>
     {
@@ -46,6 +46,15 @@ namespace Asteroids.Shared
                 AddToPool(CreateInstance());
             }
             T instance = objects.Dequeue();
+            while (instance == null && objects.Count > 0)
+            {
+                instance = objects.Dequeue();
+            }
+            if (instance == null)
+            { 
+                AddToPool(CreateInstance());
+                instance = objects.Dequeue();
+            }
 
             // reset to prefab
             instance.transform.localScale = prefab.transform.localScale;

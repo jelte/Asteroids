@@ -1,4 +1,4 @@
-﻿using Asteroids.Shared;
+﻿using Asteroids.Shared.Pooling;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -14,6 +14,8 @@ namespace Asteroids.Game
         #region Properties
         [Tooltip("How long does the explosion last?")]
         public float explosionTime = 4f;
+
+        private new ParticleSystem particleSystem;
         #endregion
 
         #region Methods
@@ -26,8 +28,14 @@ namespace Asteroids.Game
         #endregion
 
         #region Unity Methods
+        void Awake()
+        {
+            particleSystem = GetComponent<ParticleSystem>();
+        }
+
         void OnEnable()
         {
+            particleSystem.Play();
             StartCoroutine(CleanUp());
         }
         #endregion
