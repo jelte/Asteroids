@@ -1,18 +1,20 @@
 ﻿using Asteroids.Game;
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Asteroids.UI
 {
-    public class ShipSelector : MonoBehaviour
+    public class ShipSelector : MonoBehaviour, IPointerDownHandler, IDragHandler
     {
         #region Events
         public event Action<int> OnSelect;
         public event Action<int> OnEnter;
+        public event Action<float> OnSwipe;
         #endregion
 
         #region Properties
-        public int index;
+        private int index;
         #endregion
 
         #region Unity Methods
@@ -24,6 +26,21 @@ namespace Asteroids.UI
         void OnMouseDown()
         {
             OnSelect?.Invoke(index);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            OnSelect?.Invoke(index);
+        }
+
+        void Start()
+        {
+            index = transform.GetSiblingIndex();
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            OnSwipe?.Invoke(-eventData.scrollDelta.x);
         }
         #endregion
     }

@@ -13,11 +13,12 @@ namespace Asteroids.UI
         [SerializeField] private AudioClip selectionSound;
         [SerializeField] private TextMesh namePrefab;
         private ShipModel[] models;
-        private Tuple<ShipSelector, ShipSelector>[] selectors;
         private new Camera camera;
-        private GameObject ships;
-        
+        private Transform ships;
+        private Transform names;
+
         private float angle;
+        private bool selecting = false;
         private bool rotating = false;
         public float distance = 10f;
         private int current;
@@ -45,13 +46,15 @@ namespace Asteroids.UI
 
         private void Select()
         {
-            if (rotating) return;
+            if (rotating || selecting) return;
+
+            selecting = true;
 
             // Disable controls
             InputManager.Instance.OnHorizontalAxis -= Rotate;
             InputManager.Instance.OnSubmit -= Select;
 
-            Launch(ships.transform.GetChild(current), current);
+            Launch(ships.GetChild(current), current);
         }
         
         IEnumerator Turn(Quaternion start, Quaternion target)
@@ -78,7 +81,7 @@ namespace Asteroids.UI
                 }, 1f);
                 startEngines.completed += delegate ()
                 {
-                    GameAsyncOperation rotation2 = Shared.Animator.Rotate(ship, Vector3.left, 45f, 1f);
+                    Shared.Animator.Rotate(ship, Vector3.left, 45f, 1f);
                     GameAsyncOperation movement = Shared.Animator.Move(ship, (ship.forward + ship.up) * 25f, 1f);
 
                     movement.completed += delegate ()
@@ -112,9 +115,12 @@ namespace Asteroids.UI
         private void Awake()
         {
             camera = GetComponentInChildren<Camera>();
-            ships = new GameObject("Ship");
-            ships.transform.parent = transform;
-            ships.transform.localPosition = Vector3.zero;
+            ships = new GameObject("-- Ships").transform;
+            ships.parent = transform;
+            ships.localPosition = Vector3.zero;
+            names = new GameObject("-- Names").transform;
+            names.parent = transform;
+            names.localPosition = Vector3.zero;
         }
 
         void Start()
@@ -125,37 +131,45 @@ namespace Asteroids.UI
             current = 0;
             modelCount = models.Length;
             angle = 360f / modelCount;
-
-            selectors = new Tuple<ShipSelector, ShipSelector>[modelCount];
+            
             // render all models
             for (int i = 0; i < modelCount; i++)
             {
                 // Render the model
-                ShipModel instance = Instantiate(models[i], ships.transform);
+                ShipModel instance = Instantiate(models[i], ships);
                 // Render the name
                 TextMesh name = Instantiate(namePrefab, instance.transform);
                 name.text = models[i].name;
 
                 ShipSelector instanceSelector = instance.gameObject.AddComponent<ShipSelector>();
-                instanceSelector.index = i;
                 ShipSelector nameSelector = name.gameObject.AddComponent<ShipSelector>();
-                nameSelector.index = i;
-
-                instanceSelector.OnEnter += RotateTo;
+                
+                // bind event listeners
                 instanceSelector.OnSelect += Select;
-                nameSelector.OnEnter += RotateTo;
                 nameSelector.OnSelect += Select;
+                
+#if UNITY_ANDROID	
+                instanceSelector.OnSwipe += Rotate;
+                nameSelector.OnSwipe += Rotate;
+#else
+                instanceSelector.OnEnter += RotateTo;
+                nameSelector.OnEnter += RotateTo;
+#endif
 
+                // move away from center
                 instance.transform.localPosition = Quaternion.Euler(0, angle * i, 0) * (Vector3.forward * distance);
-                instance.transform.LookAt(ships.transform);
 
-                name.transform.parent = transform;
+                // rotate towards center
+                instance.transform.LookAt(ships);
+
+                // Disconnect name from model (so it does not get animated'
+                name.transform.parent = names;
             }
 
             // Set up key listeners.
             InputManager.Instance.OnHorizontalAxis += Rotate;
             InputManager.Instance.OnSubmit += Select;
         }
-        #endregion
+#endregion
     }
 }

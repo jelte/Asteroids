@@ -77,6 +77,7 @@ namespace Asteroids
         {
             // reset the ended flag.
             InputManager.Instance.OnAnyKey -= Restart;
+
             // Load the main menu
             mainMenuScene.Load();
         }
