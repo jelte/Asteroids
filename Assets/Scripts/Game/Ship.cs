@@ -1,4 +1,5 @@
-﻿using Asteroids.Shared.Pooling;
+﻿using Asteroids.Shared.Inputs;
+using Asteroids.Shared.Pooling;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -129,11 +130,10 @@ namespace Asteroids.Game
 
             // Make the ship vulnerable after 1 second.
             StartCoroutine(MakeVulnerable(1f));
-
-            InputManager inputManager = FindObjectOfType<InputManager>();
-            inputManager.OnHorizontalAxis += Turn;
-            inputManager.OnVerticalAxis += Accelerate;
-            inputManager.OnFire += Fire;
+            
+            InputManager.Instance.OnHorizontalAxis += Turn;
+            InputManager.Instance.OnVerticalAxis += Accelerate;
+            InputManager.Instance.OnFire += Fire;
         }
         
         void OnCollisionEnter(Collision collision)
