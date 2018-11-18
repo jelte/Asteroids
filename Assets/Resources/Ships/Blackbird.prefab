@@ -526,7 +526,7 @@ GameObject:
   - component: {fileID: 114712465075936198}
   - component: {fileID: 64852191314644306}
   m_Layer: 11
-  m_Name: StarSparrowModular6
+  m_Name: Blackbird
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
