@@ -37,12 +37,7 @@ namespace Asteroids.UI
 
             float deltaSign = Mathf.Sign(delta);
 
-            Rotate command = new Rotate
-            {
-                subject = camera.transform,
-                axis = Vector3.up,
-                angle = angle * deltaSign
-            };
+            Rotate command = new Rotate(camera.transform, Vector3.up, angle * deltaSign);
             command.completed += delegate () {
                 // finished rotating
                 rotating = false;
@@ -80,36 +75,18 @@ namespace Asteroids.UI
 
         void Launch(Transform ship, int index)
         {
-            Rotate shipRotation = new Rotate()
-            {
-                subject = ship,
-                axis = Vector3.up,
-                angle = 180f
-            };
+            Rotate shipRotation = new Rotate(ship, Vector3.up, 180f);
             shipRotation.completed += delegate () {
                 Bus.Execute(new Play(selectionSound));
                 Engine[] engines = ship.GetComponentsInChildren<Engine>();
-                Delegation startEngine = new Delegation()
+                Delegation startEngine = new Delegation(delegate ()
                 {
-                    action = delegate ()
-                    {
-                        foreach (Engine engine in engines) engine.StartEngine();
-                    },
-                    duration = 0f
-                };
+                    foreach (Engine engine in engines) engine.StartEngine();
+                }, 0.75f);
                 startEngine.completed += delegate ()
                 {
-                    Rotate shipVerticalRotation = new Rotate()
-                    {
-                        subject = ship,
-                        axis = Vector3.left,
-                        angle = 45f
-                    };
-                    Move shipMovement = new Move()
-                    {
-                        subject = ship,
-                        movement = (ship.forward + ship.up) * 25f
-                    };
+                    Rotate shipVerticalRotation = new Rotate(ship, Vector3.left, 45f);
+                    Move shipMovement = new Move(ship, (ship.forward + ship.up) * 25f);
                     shipMovement.completed += delegate ()
                     {
                         FindObjectOfType<GameManager>().LoadGame(models[index]);
