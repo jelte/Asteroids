@@ -1,4 +1,8 @@
 ﻿using Asteroids.Shared;
+using Asteroids.Shared.Audio.Command;
+using Asteroids.Shared.CommandBus;
+using Asteroids.Shared.Pooling;
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -23,40 +27,14 @@ namespace Asteroids
         #endregion
 
         #region Static Methods
-        /**
-         * Play an audio clip
-         **/
-        public static GameAsyncOperation PlayAndWait(AudioClip audioClip)
+        public static AudioSource GetSource()
         {
-            GameAsyncOperation operation = new GameAsyncOperation();
-
-            Instance.StartCoroutine(Play(operation, audioClip));
-
-            return operation;
+            return Instance.sources.Get();
         }
 
-        public static void Play(AudioClip audioClip)
+        public static void Recycle(AudioSource source)
         {
-            // play the clip
-            // saving GC 12 bytes by pooling the AudioSource over PlayClipAtPoint
-            //AudioSource.PlayClipAtPoint(audioClip, Vector3.zero, SoundVolume);
-            PlayAndWait(audioClip);
-        }
-
-        private static IEnumerator Play(GameAsyncOperation operation, AudioClip audioClip)
-        {
-            AudioSource source = Instance.sources.Get();
-            source.playOnAwake = false;
-            source.volume = SoundVolume;
-            source.clip = audioClip;
-            source.Play();
-
-            // wait for it to finish
-            yield return new WaitForSeconds(audioClip.length);
-
             Instance.sources.Add(source);
-            // flag the operation as completed
-            operation.Done();
         }
         #endregion
 
