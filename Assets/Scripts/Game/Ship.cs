@@ -129,7 +129,7 @@ namespace Asteroids.Game
             }
 
             // Make the ship vulnerable after 1 second.
-            StartCoroutine(MakeVulnerable(1f));
+            StartCoroutine(MakeVulnerable(2.75f));
             
             InputManager.Instance.OnHorizontalAxis += Turn;
             InputManager.Instance.OnVerticalAxis += Accelerate;
