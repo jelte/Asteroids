@@ -26,7 +26,8 @@ namespace Asteroids.Shared.Audio.Handler
 
             yield return new WaitForSeconds(command.clip.length);
 
-            Instance.sources.Add(source);
+            AudioManager.Recycle(source);
+
             command.Done();
         }
     }
