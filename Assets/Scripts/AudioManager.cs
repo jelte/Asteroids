@@ -31,6 +31,11 @@ namespace Asteroids
         {
             return Instance.sources.Get();
         }
+
+        public static void Recycle(AudioSource source)
+        {
+            Instance.sources.Add(source);
+        }
         #endregion
 
         #region Properties
