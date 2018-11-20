@@ -31,8 +31,7 @@ namespace Asteroids.UI
         #region Methods
         private void Rotate(float delta)
         {
-            if (rotating || delta == 0) return;
-            
+            if (rotating || delta == 0f) return;
             rotating = true;
 
             float deltaSign = Mathf.Sign(delta);

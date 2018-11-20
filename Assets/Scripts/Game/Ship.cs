@@ -2,6 +2,7 @@
 using Asteroids.Shared.Pooling;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Asteroids.Game
@@ -14,6 +15,7 @@ namespace Asteroids.Game
         public event Action OnFire;
         public event Action OnAccelerationStart;
         public event Action OnAccelerationStop;
+
         public event Action<float> OnTurn;
         #endregion
 
@@ -40,14 +42,21 @@ namespace Asteroids.Game
         private ShipModel model;
         private new Rigidbody rigidbody;
 
+        private new MeshCollider collider;
+        
         public ShipModel Model
         {
             set
             {
                 model = Instantiate(value, transform);
                 model.Bind(this);
+
+                collider = GetComponentInChildren<MeshCollider>();
+                Engines = GetComponentsInChildren<Engine>();
             }
         }
+
+        public IEnumerable<Engine> Engines { get; internal set; }
         #endregion
 
         #region Methods
@@ -110,16 +119,47 @@ namespace Asteroids.Game
             yield return new WaitForSeconds(delay);
             vulnerable = true;
         }
+
+        public void Enable()
+        {
+            collider.enabled = true;
+
+            // Make the ship vulnerable after 1 second.
+            StartCoroutine(MakeVulnerable(1f));
+
+            InputManager.Instance.OnHorizontalAxis += Turn;
+            InputManager.Instance.OnVerticalAxis += Accelerate;
+            InputManager.Instance.OnFire += Fire;
+        }
+
+        public void Disable()
+        {
+            if (collider != null)
+            {
+                collider.enabled = false;
+            }
+
+            if (rigidbody != null)
+            {
+                rigidbody.velocity = Vector3.zero;
+            }
+
+            vulnerable = false;
+
+            InputManager.Instance.OnHorizontalAxis -= Turn;
+            InputManager.Instance.OnVerticalAxis -= Accelerate;
+            InputManager.Instance.OnFire -= Fire;
+        }
+
         #endregion
 
-        #region unity
-        void Start()
-        {
-            projectilePool = ObjectPoolFactory.Get(projectilePrefab);
-
+        #region Unity Methods
+        void Awake()
+        {         
             // Make sure there is a rigidbody attached to the ship and that it is configured properly.
             rigidbody = GetComponent<Rigidbody>();
-            if (rigidbody == null) { 
+            if (rigidbody == null)
+            {
                 rigidbody = gameObject.AddComponent<Rigidbody>();
             }
             rigidbody.useGravity = false;
@@ -128,14 +168,9 @@ namespace Asteroids.Game
                 Debug.LogWarning("Check pitch and roll restraints on ship");
             }
 
-            // Make the ship vulnerable after 1 second.
-            StartCoroutine(MakeVulnerable(2.75f));
-            
-            InputManager.Instance.OnHorizontalAxis += Turn;
-            InputManager.Instance.OnVerticalAxis += Accelerate;
-            InputManager.Instance.OnFire += Fire;
+            projectilePool = ObjectPoolFactory.Get(projectilePrefab);
         }
-        
+
         void OnCollisionEnter(Collision collision)
         {
             // Don't do something when the ship isn't vulnerable.
@@ -143,17 +178,14 @@ namespace Asteroids.Game
 
             // notify event listeners.
             OnCollision?.Invoke();
-            
+
             // Destroy the ship.
             Destroy(gameObject);
         }
 
         void OnDestroy()
         {
-            // Clean Up input manager;
-            InputManager.Instance.OnHorizontalAxis -= Turn;
-            InputManager.Instance.OnVerticalAxis -= Accelerate;
-            InputManager.Instance.OnFire -= Fire;
+            Disable();
         }
         #endregion
     }

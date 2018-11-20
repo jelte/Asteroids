@@ -1,6 +1,6 @@
 ﻿using Asteroids.Game;
+using Asteroids.Game.Animation.Commands;
 using Asteroids.Game.Data;
-using Asteroids.Shared.Animation.Commands;
 using Asteroids.Shared.CommandBus;
 using System;
 using System.Collections;
@@ -103,11 +103,13 @@ namespace Asteroids
                 level++;
 
                 // Move the ship in
-                TransitionIn(ship);
+                Bus.Execute(new TransitionIn(ship));
             };
             if (level > 0)
             {
-                TransitionOut(ship, load);
+                TransitionOut transitionOut = new TransitionOut(ship);
+                transitionOut.completed += load;
+                Bus.Execute(transitionOut);
             } else
             {
                 load.Invoke();
@@ -136,61 +138,7 @@ namespace Asteroids
             }
             return ship;
         }
-
-        private void TransitionOut(Ship ship, Action completed)
-        {
-            MeshCollider collider = ship.GetComponentInChildren<MeshCollider>();
-            Vector3 target = camera.ViewportToWorldPoint(new Vector2(0.5f, 1f));
-            collider.enabled = false;
-            Engine[] engines = ship.GetComponentsInChildren<Engine>();
-            Delegation startEngine = new Delegation(delegate ()
-            {
-                foreach (Engine engine in engines) engine.StartEngine();
-            }, 0.75f);
-            startEngine.completed += delegate ()
-            {
-                Rotate rotation = new Rotate(ship.transform, Vector3.up, Vector3.Angle(transform.position, target));
-                rotation.completed += delegate ()
-                {
-                    Move moveToEdge = new Move(ship.transform, (target - ship.transform.position));
-                    moveToEdge.completed += delegate ()
-                    {
-                        foreach (Engine engine in engines) engine.StopEngine();
-                        collider.enabled = true;
-                        completed?.Invoke();
-                    };
-
-                    Bus.Execute(moveToEdge);
-                };
-                Bus.Execute(rotation);
-            };
-            Bus.Execute(startEngine);
-        }
-
-        private void TransitionIn(Ship ship)
-        {
-            ship.transform.localPosition = camera.ViewportToWorldPoint(new Vector2(0.5f, 0.05f));
-            MeshCollider collider = ship.GetComponentInChildren<MeshCollider>();
-            collider.enabled = false;
-            Engine[] engines = ship.GetComponentsInChildren<Engine>();
-            Delegation startEngine = new Delegation(delegate ()
-            {
-                foreach (Engine engine in engines) engine.StartEngine();
-            }, 0.75f);
-            startEngine.completed += delegate ()
-            {
-                Move moveToCenter = new Move(ship.transform, -ship.transform.localPosition);
-                moveToCenter.completed += delegate ()
-                {
-                    foreach (Engine engine in engines) engine.StopEngine();
-                    collider.enabled = true;
-                };
-
-                Bus.Execute(moveToCenter);
-            };
-            Bus.Execute(startEngine);
-        }
-
+        
         /**
          * Respawn a ship
          **/
@@ -202,7 +150,7 @@ namespace Asteroids
             // Spawn a new ship
             Ship ship = SpawnShip();
 
-            TransitionIn(ship);
+            Bus.Execute(new TransitionIn(ship));
         }
         #endregion
 
