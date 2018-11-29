@@ -1,5 +1,7 @@
 ﻿using Asteroids.Game;
+using Asteroids.Game.Animation.Commands;
 using Asteroids.Game.Data;
+using Asteroids.Shared.CommandBus;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -39,6 +41,8 @@ namespace Asteroids
         private Level[] levels;
 
         private AsteroidManager asteroidManager;
+
+        private new Camera camera;
         #endregion
 
         #region Methods
@@ -69,10 +73,10 @@ namespace Asteroids
             // Create a copy of the player model for the player lives indicator.
             Instantiate(shipModel, GameObject.FindGameObjectWithTag("Lives").transform);
 
-            // Load the first level
-            LoadLevel();
             // Spawn the ship
             SpawnShip();
+            // Load the first level
+            LoadLevel();
         }
 
         /**
@@ -86,21 +90,39 @@ namespace Asteroids
                 OnGameCompleted?.Invoke();
                 return;
             }
-            // Load the level
-            asteroidManager.Load(levels[level]);
-            // keep track of how many asteroids are/will be in the level
-            asteroids = levels[level].AsteroidCount;
 
-            // make sure the next level is loaded next.
-            level++;
+            Ship ship = FindObjectOfType<Ship>();
+            Action load = delegate ()
+            {
+                // Load the level
+                asteroidManager.Load(levels[level]);
+                // keep track of how many asteroids are/will be in the level
+                asteroids = levels[level].AsteroidCount;
+
+                // make sure the next level is loaded next.
+                level++;
+
+                // Move the ship in
+                Bus.Execute(new TransitionIn(ship));
+            };
+            if (level > 0)
+            {
+                TransitionOut transitionOut = new TransitionOut(ship);
+                transitionOut.completed += load;
+                Bus.Execute(transitionOut);
+            } else
+            {
+                load.Invoke();
+            }
         }
 
         /**
          * Spawn a ship
          **/
-        private void SpawnShip()
+        private Ship SpawnShip()
         {
             Ship ship = Instantiate(shipPrefab, asteroidManager.transform);
+            ship.transform.localPosition = camera.ViewportToWorldPoint(new Vector2(0.5f, 0.05f));
             ship.Model = shipModel;
 
             ship.OnCollision += delegate () { OnShipDestroyed?.Invoke(); };
@@ -114,8 +136,9 @@ namespace Asteroids
                 // Respawn after 2 seconds
                 ship.OnCollision += delegate () { StartCoroutine(Respawn(2f)); };
             }
+            return ship;
         }
-
+        
         /**
          * Respawn a ship
          **/
@@ -125,7 +148,16 @@ namespace Asteroids
             yield return new WaitForSeconds(delay);
 
             // Spawn a new ship
-            SpawnShip();
+            Ship ship = SpawnShip();
+
+            Bus.Execute(new TransitionIn(ship));
+        }
+        #endregion
+
+        #region Unity Methods
+        void Awake()
+        {
+            camera = Camera.main;
         }
         #endregion
     }

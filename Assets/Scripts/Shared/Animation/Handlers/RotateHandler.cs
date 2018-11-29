@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Asteroids.Shared.Animation.Handlers
 {
-    class RotateHandler : IHandler<Rotate>
+    public class RotateHandler : IHandler<Rotate>
     {
         public IEnumerator Handle(Rotate command)
         {

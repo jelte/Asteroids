@@ -1,6 +1,8 @@
 ﻿using Asteroids.Shared.Audio.Command;
 using Asteroids.Shared.CommandBus;
 using Asteroids.Shared.Pooling;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Asteroids.Game
@@ -20,6 +22,10 @@ namespace Asteroids.Game
         public AudioClip explosionSound;
         public AudioClip projectileSound;
 
+        private List<Engine> engines;
+        // note: replace tuple with dedicated Part struct.
+        private List<ShipPart> parts;
+
         // Explosion pool
         private IObjectPool<Explosion> explosionPool;
         #endregion
@@ -31,7 +37,7 @@ namespace Asteroids.Game
             ship.OnCollision += Explode;
             ship.OnTurn += Turn;
 
-            foreach (Engine engine in GetComponentsInChildren<Engine>())
+            foreach (Engine engine in engines)
             {
                 ship.OnAccelerationStart += engine.StartEngine;
                 ship.OnAccelerationStop += engine.StopEngine;
@@ -40,19 +46,9 @@ namespace Asteroids.Game
 
         void Explode()
         {
-            // Break the model;
-            for (int i = transform.childCount - 1; i >= 0; i--)
-            {
-                Transform part = transform.GetChild(i);
-                // Assign to space instead of ship
-                part.parent = transform.parent.parent;
-                Rigidbody rigidbody = part.gameObject.GetComponent<Rigidbody>();
-                // Enable forces
-                rigidbody.isKinematic = false;
-                // Send the part flying off in a random direction
-                rigidbody.AddForce(Random.insideUnitSphere * 200f, ForceMode.Acceleration);
-                // Remove the part after 2 seconds
-                Destroy(part.gameObject, 2f);
+
+            foreach (ShipPart part in parts) {
+                part.Detach();
             }
             // Create the explosion effect
             explosionPool.Get(transform.position);
@@ -79,12 +75,36 @@ namespace Asteroids.Game
             // pivot toward the targt angle.
             transform.localRotation = Quaternion.Slerp(transform.localRotation, targetAngle, rollSpeed);
         }
+
+        void Reconstruct()
+        {
+            parts.ForEach(delegate (ShipPart part)
+            {
+                part.Restore(this);
+            });
+        }
         #endregion
 
         #region Unity Methods
         void Awake()
         {
             explosionPool = ObjectPoolFactory.Get(explosionEffect);
+            
+            parts = new List<ShipPart>();
+            engines = new List<Engine>();
+            for (int i = transform.childCount - 1; i > 0; i--)
+            {
+                Transform child = transform.GetChild(i);
+
+                Engine engine = child.GetComponent<Engine>();
+                if (engine != null)
+                {
+                    engines.Add(engine);
+                }
+
+                // Store reference to ship part, its position and rotation.
+                parts.Add(new ShipPart(child));
+            }
         }
         #endregion
     }

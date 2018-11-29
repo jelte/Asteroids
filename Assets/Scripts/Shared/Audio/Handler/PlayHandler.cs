@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Asteroids.Shared.Audio.Handler
 {
-    public class PlayHandler : IHandler<Play>
+    public class TransitoinInHandler : IHandler<Play>
     {
         public IEnumerator Handle(Play command)
         {
